@@ -5,21 +5,16 @@ import "antd/dist/antd.css";
 import "./index.css";
 import EditableFormTable from "./table";
 import { getCurrentDate } from "./utils";
+import { getyesterdayDate } from "./utils";
 
 const RadioGroup = Radio.Group;
 class App extends React.Component {
   state = {
-    date: null,
+    date: getCurrentDate(),
     shown: false
   };
 
   handleChange = date => {
-    message.info(`Selected Date: ${date ? date.format("YYYY-MM-DD") : "None"}`);
-    this.setState({ date });
-  };
-
-  handletodaysdate = date => {
-    date = getCurrentDate();
     message.info(`Selected Date: ${date ? date.format("YYYY-MM-DD") : "None"}`);
     this.setState({ date });
   };
@@ -40,12 +35,20 @@ class App extends React.Component {
     this.setState({
       shown: false
     });
+    var abc = getCurrentDate();
+    this.setState({ date: abc });
+    message.info(`Selected Date: ${abc}`);
+    console.log(this.state.date);
   }
 
   toggleyesterday() {
     this.setState({
       shown: false
     });
+    var abc = getyesterdayDate();
+    this.setState({ date: abc });
+    message.info(`Selected Date: ${abc}`);
+    console.log(this.state.date);
   }
 
   render() {
@@ -59,10 +62,10 @@ class App extends React.Component {
         <h1>TIMESHEET ENTRY</h1>
         <div>
           <RadioGroup onChange={this.onchange} value={this.state.value}>
-            <Radio value={1} onClick={this.toggletoday.bind(this)}>
+            <Radio value={1} onChange={this.toggletoday.bind(this)}>
               Today
             </Radio>
-            <Radio value={2} onClick={this.toggleyesterday.bind(this)}>
+            <Radio value={2} onChange={this.toggleyesterday.bind(this)}>
               Yesterday
             </Radio>
             <Radio value={3} onClick={this.toggleon.bind(this)}>
@@ -83,14 +86,6 @@ class App extends React.Component {
           <Button type="primary">SUBMIT</Button>
         </div>
         <br />
-        <div style={{ marginTop: 20 }}>
-          <Alert
-            message={`Selected Date: ${
-              date ? date.format("YYYY-MM-DD") : "None"
-            }`}
-            type="success"
-          />
-        </div>
       </div>
     );
   }
