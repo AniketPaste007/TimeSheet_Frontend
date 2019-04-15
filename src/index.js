@@ -16,7 +16,9 @@ class App extends React.Component {
 
   handleChange = date => {
     message.info(`Selected Date: ${date ? date.format("YYYY-MM-DD") : "None"}`);
-    this.setState({ date });
+    //console.log(`${date ? date.format("YYYY-MM-DD") : "None"}`);
+    this.setState({ date: `${date ? date.format("YYYY-MM-DD") : "None"}` });
+    //console.log(this.state.date);
   };
 
   onchange = e => {
@@ -79,6 +81,7 @@ class App extends React.Component {
           <DatePicker onChange={this.handleChange} />
         </div>
         <br />
+        <div>Date is : {this.state.date}</div>
 
         <EditableFormTable id="container" />
         <br />
