@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { createStore, combineReducers } from 'redux';
 import {
   Button,
   Radio,
@@ -8,20 +9,239 @@ import {
   Menu,
   Icon,
   Dropdown,
-  Alert
+  Input,
+  Table
 } from "antd";
 import "antd/dist/antd.css";
 import "./index.css";
-import EditableFormTable from "./table";
 import { getCurrentDate } from "./utils";
 import { getyesterdayDate } from "./utils";
 
 const RadioGroup = Radio.Group;
-class App extends React.Component {
-  state = {
-    date: getCurrentDate(),
-    shown: false
+
+var productList = [
+  {
+    id: 1,
+    category: 'Sporting Goods',
+    price: '49.99',
+    qty: 12,
+    name: 'football'
+  }, {
+    id: 2,
+    category: 'Sporting Goods',
+    price: '9.99',
+    qty: 15,
+    name: 'baseball'
+  }, {
+    id: 3,
+    category: 'Sporting Goods',
+    price: '29.99',
+    qty: 14,
+    name: 'basketball'
+  }, {
+    id: 4,
+    category: 'Electronics',
+    price: '99.99',
+    qty: 34,
+    name: 'iPod Touch'
+  }, {
+    id: 5,
+    category: 'Electronics',
+    price: '399.99',
+    qty: 12,
+    name: 'iPhone 5'
+  }, {
+    id: 6,
+    category: 'Electronics',
+    price: '199.99',
+    qty: 23,
+    name: 'nexus 7'
+  }
+];
+
+/* reducers*/
+function table(state = [], action) {
+  if (action.type === "ADD_PRODUCT") {
+    return state.concat([action.obj])
+  } else if (action.type === "DELETE_PRODUCT") {
+    var index = state.indexOf(action.obj);
+    state.splice(index, 1);
+    return state;
+  } else if (action.type === "UPDATE_PRODUCT") {
+    return state.map((todo, index, arr) => {
+      if (arr[index].id.toString() === action.obj.id) {
+        let obj = {};
+        obj[action.obj.name] = action.obj.value;
+        return Object.assign({}, todo, obj);
+      }
+      return todo
+    })
+
+  } else {
+    return state;
+  }
+
+}
+function filter(state = "", action) {
+
+  if (action.type === "FILTER_TEXT") {
+    return action.text;
+  } else {
+    return state;
+  }
+
+}
+
+var filterText = ""
+
+var initialState = {
+  filter: filterText,
+  table: productList
+
+};
+
+let reducer = combineReducers({ table, filter })
+let store = createStore(reducer, initialState);
+
+/* class Products extends React.Component {
+  constructor(props) {
+      super(props);
+
+      this.state = {
+          value: '',
+      };
+
+      store.subscribe(() => {
+          this.setState({
+              value: store.getState(),
+          })
+      }); 
   };
+
+render() {
+  const state = store.getState();
+  return (
+      
+  );
+
+} 
+
+}*/
+function ProductTable(props) {
+
+  //var filterText = props.filterText;
+  //console.log(props);
+  var product = props.products.map(function (product) {
+    if (product.name.indexOf(filterText) === -1) {
+      return;
+    }
+    return (<ProductRow product={product} key={product.id} />)
+  });
+  return (
+    <div>
+      <div>
+        <Button type="primary" onClick={() => store.dispatch({
+          type: 'ADD_PRODUCT',
+          obj: {
+            category: "",
+            id: (+ new Date() + Math.floor(Math.random() * 999999)).toString(36),
+            name: "",
+            price: "",
+            qty: 0
+          }
+        })}>Add</Button>
+      </div>
+      <br/>
+      <div>
+        <table className="table table-bordered">
+          <thead align="center" style={{ backgroundColor: "black", color: "white" }}>
+            <tr>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Category</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {product}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  );
+
+}
+
+function ProductRow(props) {
+
+  return (
+    <tr className="eachRow" align="center">
+      <EditableCell cellData={{
+        "type": "name",
+        value: props.product.name,
+        id: props.product.id
+      }} />
+      <EditableCell cellData={{
+        type: "price",
+        value: props.product.price,
+        id: props.product.id
+      }} />
+      <EditableCell cellData={{
+        type: "qty",
+        value: props.product.qty,
+        id: props.product.id
+      }} />
+      <EditableCell cellData={{
+        type: "category",
+        value: props.product.category,
+        id: props.product.id
+      }} />
+      <td className="del-cell">
+        <Button type="danger" shape="circle" onClick={() => store.dispatch({ type: 'DELETE_PRODUCT', obj: props.product })}>
+          <Icon type="delete" style={{marginBottom: "7px"}}/>
+        </Button>
+      </td>
+    </tr>
+  );
+
+}
+function EditableCell(props) {
+  return (
+    <td>
+      <Input type='text' id={props.cellData.id} value={props.cellData.value} name={props.cellData.type} onChange={(evt) => {
+        store.dispatch({
+          type: 'UPDATE_PRODUCT',
+          obj: {
+            id: evt.target.id,
+            name: evt.target.name,
+            value: evt.target.value
+          }
+        })
+      }} />
+    </td>
+  );
+}
+
+class App extends React.Component {
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      date: getCurrentDate(),
+      shown: false,
+      value: '',
+    };
+
+    store.subscribe(() => {
+      this.setState({
+        value: store.getState(),
+      })
+    });
+  }
+
 
   handleChange = date => {
     message.info(`Selected Date: ${date ? date.format("YYYY-MM-DD") : "None"}`);
@@ -74,6 +294,7 @@ class App extends React.Component {
 
   render() {
     const { date } = this.state;
+    const value = store.getState();
     var shown = {
       display: this.state.shown ? "block" : "none"
     };
@@ -123,9 +344,11 @@ class App extends React.Component {
           <DatePicker onChange={this.handleChange} />
         </div>
         <br />
-        <div>Date is : {this.state.date}</div>
+        {/*<div>Date is : {this.state.date}</div>*/}
 
-        <EditableFormTable id="container" />
+        <div>
+          <ProductTable products={value.table} />
+        </div>
         <br />
         <div style={{ marginTop: "16px", display: "Block" }}>
           <Button type="primary">SUBMIT</Button>
